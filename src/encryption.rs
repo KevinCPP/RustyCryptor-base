@@ -1,3 +1,4 @@
+// import necessary OpenSSL library crates
 use openssl::symm::{Cipher, Crypter, Mode};
 use openssl::error::ErrorStack;
 
