@@ -5,9 +5,11 @@ use once_cell::sync::Lazy;
 use std::ops::Deref;
 
 pub mod input;
+pub mod password;
 pub mod encryption;
 
 use input::*;
+use password::*;
 use encryption::*;
 
 static MAIN_MENU_STR: Lazy<String> = Lazy::new(|| {

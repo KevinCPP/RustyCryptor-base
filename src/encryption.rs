@@ -1,59 +1,90 @@
-use aes_gcm::{Aes256Gcm, Aes128Gcm, Aes192Gcm, NewAead};
-use aes_gcm::aead::{Aead, KeyInit};
-use aead::{Aead, NewAead};
-use aes::{Aes128, Aes192, Aes256};
-use hmac::{Hmac, Mac, NewMac};
-use sha2::Sha256;
-use rand::{thread_rng, RngCore, rngs::OsRng};
-use pbkdf2::pbkdf2;
-use aes_gcm::aead::generic_array::GenericArray;
+use openssl::symm::{Cipher, Crypter, Mode};
+use openssl::error::ErrorStack;
 
-type HmacSha256 = Hmac<Sha256>;
-const PBKDF2_ITERATIONS: u32 = 100_000;
-
-// Function to convert a String into a byte slice
-pub fn string_to_password_bytes(password: String) -> Vec<u8> {
-    password.into_bytes()
+/// Generates an openssl ErrorStack with a custom message
+fn create_error(message: &str) -> ErrorStack {
+    // create a new ErrorStack with a custom error message
+    let mut error_stack = ErrorStack::new();
+    // add the message to this error stack
+    error_stack.add(0, message);
+    // return the error stack
+    error_stack
 }
 
-pub fn aes_encrypt(plaindata: &[u8], key: &[u8]) -> Vec<u8> {
-    // Choose the appropriate AES variant based on key length and create a nonce
-    let nonce = GenericArray::from_slice(b"unique nonce"); // NOTE: In real applications, use a unique nonce for each message
+/// Accepts a byte slice of data to be encrypted, a key of length 16 to perform the encryption
+/// with, and an initialization vector of length 16. Returns an Ok result containing the encrypted
+/// data if all goes well, otherwise returns an error
+pub fn encrypt_aes_128(data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, ErrorStack> {
+    // ensure that key and IV lengths are valid for AES-128-CBC
+    let iv_len_aes_128 = 16;    // the initialization vector should be 16 bytes
+    let key_len_aes_128 = 16;   // the key length should be 16 bytes for AES128
+    if key.len() != 16 || iv.len() != 16 {
+        return Err(create_error("Invalid key length or iv length"));
+    }
+    
+    // choose the AES-128-CBC cipher.
+    let cipher = Cipher::aes_128_cbc();
+    
+    // Create a Crypter in encryption mode
+    let mut crypter = Crypter::new(cipher, Mode::Encrypt, key, Some(iv))?;
 
-    let cipher = match key.len() {
-        16 => Aes128Gcm::new(GenericArray::from_slice(key)),
-        24 => Aes192Gcm::new(GenericArray::from_slice(key)),
-        32 => Aes256Gcm::new(GenericArray::from_slice(key)),
-        _ => panic!("Invalid key size"),
-    };
-
-    // Encrypt the plaintext, handling the result in case of an error
-    cipher.encrypt(nonce, plaindata).expect("encryption failure")
+    // Encrypt and finalize data
+    let mut encrypted = vec![0; data.len() + cipher.block_size()];
+    let count = crypter.update(data, &mut encrypted)?;
+    let rest = crypter.finalize(&mut encrypted[count..])?;
+    encrypted.truncate(count + rest); // remove any padding bytes
+    
+    Ok(encrypted)
 }
 
-pub fn aes_decrypt(cipherdata: &[u8], key: &[u8]) -> Vec<u8> {
-    // Choose the appropriate AES variant based on key length and create a nonce
-    let nonce = GenericArray::from_slice(b"unique nonce"); // NOTE: The nonce should be the same as the one used during encryption
+/// Accepts a byte slice of data to be encrypted, a key of length 24 to perform the encryption
+/// with, and an initialization vector of length 16. Returns an Ok result containing the encrypted
+/// data if all goes well, otherwise returns an error
+pub fn encrypt_aes_192(data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, ErrorStack> {
+    // ensure that key and IV lengths are valid for AES-192-CBC
+    let iv_len_aes_192 = 16;    // the initialization vector should be 16 bytes
+    let key_len_aes_192 = 24;   // the key length should be 16 bytes for AES192
+    if key.len() != key_len_aes_192 || iv.len() != iv_len_aes_192 {
+        return Err(create_error("Invalid key length or iv length"));
+    }
+    
+    // choose the AES-192-CBC cipher.
+    let cipher = Cipher::aes_192_cbc();
+    
+    // Create a Crypter in encryption mode
+    let mut crypter = Crypter::new(cipher, Mode::Encrypt, key, Some(iv))?;
 
-    let cipher = match key.len() {
-        16 => Aes128Gcm::new(GenericArray::from_slice(key)),
-        24 => Aes192Gcm::new(GenericArray::from_slice(key)),
-        32 => Aes256Gcm::new(GenericArray::from_slice(key)),
-        _ => panic!("Invalid key size"),
-    };
-
-    // Decrypt the ciphertext, handling the result in case of an error
-    cipher.decrypt(nonce, cipherdata).expect("decryption failure")
+    // Encrypt and finalize data
+    let mut encrypted = vec![0; data.len() + cipher.block_size()];
+    let count = crypter.update(data, &mut encrypted)?;
+    let rest = crypter.finalize(&mut encrypted[count..])?;
+    encrypted.truncate(count + rest); // remove any padding bytes
+    
+    Ok(encrypted)
 }
 
-pub fn derive_key_iv(password_str: String, key_size: usize) -> (Vec<u8>, Vec<u8>) {
-    let password = password_str.into_bytes();
-    let mut rng = OsRng;
-    let mut salt = vec![0u8; 16];
-    rng.fill_bytes(&mut salt);
+/// Accepts a byte slice of data to be encrypted, a key of length 32 to perform the encryption
+/// with, and an initialization vector of length 16. Returns an Ok result containing the encrypted
+/// data if all goes well, otherwise returns an error
+pub fn encrypt_aes_256(data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, ErrorStack> {
+    // ensure that key and IV lengths are valid for AES-256-CBC
+    let iv_len_aes_256 = 16;    // the initialization vector should be 16 bytes
+    let key_len_aes_256 = 32;   // the key length should be 16 bytes for AES256
+    if key.len() != key_len_aes_256 || iv.len() != iv_len_aes_256 {
+        return Err(create_error("Invalid key length or iv length"));
+    }
+    
+    // choose the AES-256-CBC cipher.
+    let cipher = Cipher::aes_256_cbc();
+    
+    // Create a Crypter in encryption mode
+    let mut crypter = Crypter::new(cipher, Mode::Encrypt, key, Some(iv))?;
 
-    let mut key = vec![0u8; key_size];
-    pbkdf2::<HmacSha256>(&password, &salt, PBKDF2_ITERATIONS, &mut key);
-
-    (key, salt) // In AES-GCM, the IV is commonly known as a nonce, and it is recommended to be unique for every operation.
+    // Encrypt and finalize data
+    let mut encrypted = vec![0; data.len() + cipher.block_size()];
+    let count = crypter.update(data, &mut encrypted)?;
+    let rest = crypter.finalize(&mut encrypted[count..])?;
+    encrypted.truncate(count + rest); // remove any padding bytes
+    
+    Ok(encrypted)
 }

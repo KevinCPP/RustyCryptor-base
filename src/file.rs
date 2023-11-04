@@ -1,11 +1,31 @@
 use std::fs::File;
-use std::io::{self, Read};
+use std::io::{self, Read, Write};
 use std::path::Path;
 
-// Function to read a file and return its contents as bytes
-pub fn read_file_as_bytes<P: AsRef<Path>>(path: P) -> io::Result<Vec<u8>> {
+// This function reads binary data from a file and returns a `Result` containing the data.
+fn read_binary_file<P: AsRef<Path>>(path: P) -> io::Result<Vec<u8>> {
+    // Open the file for reading.
     let mut file = File::open(path)?;
-    let mut contents = Vec::new();
-    file.read_to_end(&mut contents)?;
-    Ok(contents)
+
+    // Create a buffer to hold the file's contents.
+    let mut buffer = Vec::new();
+
+    // Read the file's contents into the buffer.
+    file.read_to_end(&mut buffer)?;
+
+    // Return the buffer.
+    Ok(buffer)
+}
+
+// This function writes binary data to a new file.
+fn write_binary_file<P: AsRef<Path>>(path: P, data: &[u8]) -> io::Result<()> {
+    // Open the file for writing. It will create the file if it does not exist,
+    // or truncate it if it does.
+    let mut file = File::create(path)?;
+
+    // Write the binary data to the file.
+    file.write_all(data)?;
+
+    // Return an empty tuple wrapped in a `Result` to indicate success.
+    Ok(())
 }
