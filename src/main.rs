@@ -7,6 +7,8 @@ use std::ops::Deref;
 pub mod input;
 pub mod password;
 pub mod encryption;
+pub mod decryption;
+pub mod encryption_params;
 
 use input::*;
 use password::*;

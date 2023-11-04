@@ -2,25 +2,15 @@
 use openssl::symm::{Cipher, Crypter, Mode};
 use openssl::error::ErrorStack;
 
-/// Generates an openssl ErrorStack with a custom message
-fn create_error(message: &str) -> ErrorStack {
-    // create a new ErrorStack with a custom error message
-    let mut error_stack = ErrorStack::new();
-    // add the message to this error stack
-    error_stack.add(0, message);
-    // return the error stack
-    error_stack
-}
+use crate::encryption_params::{IV_LENGTH, AES_128_KEY_LENGTH, AES_192_KEY_LENGTH, AES_256_KEY_LENGTH};
 
 /// Accepts a byte slice of data to be encrypted, a key of length 16 to perform the encryption
 /// with, and an initialization vector of length 16. Returns an Ok result containing the encrypted
 /// data if all goes well, otherwise returns an error
 pub fn encrypt_aes_128(data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, ErrorStack> {
     // ensure that key and IV lengths are valid for AES-128-CBC
-    let iv_len_aes_128 = 16;    // the initialization vector should be 16 bytes
-    let key_len_aes_128 = 16;   // the key length should be 16 bytes for AES128
-    if key.len() != 16 || iv.len() != 16 {
-        return Err(create_error("Invalid key length or iv length"));
+    if key.len() != AES_128_KEY_LENGTH || iv.len() != IV_LENGTH {
+        return Err(ErrorStack::get());
     }
     
     // choose the AES-128-CBC cipher.
@@ -35,7 +25,12 @@ pub fn encrypt_aes_128(data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, Er
     let rest = crypter.finalize(&mut encrypted[count..])?;
     encrypted.truncate(count + rest); // remove any padding bytes
     
-    Ok(encrypted)
+    // append the iv to the beginning of the result
+    let mut result = Vec::with_capacity(iv.len() + encrypted.len());
+    result.extend_from_slice(iv);
+    result.extend_from_slice(&encrypted);
+
+    Ok(result)
 }
 
 /// Accepts a byte slice of data to be encrypted, a key of length 24 to perform the encryption
@@ -43,10 +38,8 @@ pub fn encrypt_aes_128(data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, Er
 /// data if all goes well, otherwise returns an error
 pub fn encrypt_aes_192(data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, ErrorStack> {
     // ensure that key and IV lengths are valid for AES-192-CBC
-    let iv_len_aes_192 = 16;    // the initialization vector should be 16 bytes
-    let key_len_aes_192 = 24;   // the key length should be 16 bytes for AES192
-    if key.len() != key_len_aes_192 || iv.len() != iv_len_aes_192 {
-        return Err(create_error("Invalid key length or iv length"));
+    if key.len() != AES_192_KEY_LENGTH || iv.len() != IV_LENGTH {
+        return Err(ErrorStack::get());
     }
     
     // choose the AES-192-CBC cipher.
@@ -60,8 +53,13 @@ pub fn encrypt_aes_192(data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, Er
     let count = crypter.update(data, &mut encrypted)?;
     let rest = crypter.finalize(&mut encrypted[count..])?;
     encrypted.truncate(count + rest); // remove any padding bytes
-    
-    Ok(encrypted)
+   
+    // append the iv to the beginning of the result
+    let mut result = Vec::with_capacity(iv.len() + encrypted.len());
+    result.extend_from_slice(iv);
+    result.extend_from_slice(&encrypted);
+
+    Ok(result)
 }
 
 /// Accepts a byte slice of data to be encrypted, a key of length 32 to perform the encryption
@@ -69,10 +67,8 @@ pub fn encrypt_aes_192(data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, Er
 /// data if all goes well, otherwise returns an error
 pub fn encrypt_aes_256(data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, ErrorStack> {
     // ensure that key and IV lengths are valid for AES-256-CBC
-    let iv_len_aes_256 = 16;    // the initialization vector should be 16 bytes
-    let key_len_aes_256 = 32;   // the key length should be 16 bytes for AES256
-    if key.len() != key_len_aes_256 || iv.len() != iv_len_aes_256 {
-        return Err(create_error("Invalid key length or iv length"));
+    if key.len() != AES_256_KEY_LENGTH || iv.len() != IV_LENGTH {
+        return Err(ErrorStack::get());
     }
     
     // choose the AES-256-CBC cipher.
@@ -87,5 +83,10 @@ pub fn encrypt_aes_256(data: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<u8>, Er
     let rest = crypter.finalize(&mut encrypted[count..])?;
     encrypted.truncate(count + rest); // remove any padding bytes
     
-    Ok(encrypted)
+    // append the iv to the beginning of the result
+    let mut result = Vec::with_capacity(iv.len() + encrypted.len());
+    result.extend_from_slice(iv);
+    result.extend_from_slice(&encrypted);
+
+    Ok(result)
 }
