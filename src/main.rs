@@ -1,18 +1,12 @@
 #![feature(string_remove_matches)]    
 
-use std::io::{self, Write};
-use once_cell::sync::Lazy;
-use std::ops::Deref;
-
 pub mod file;
-pub mod input;
 pub mod password;
 pub mod encryption;
 pub mod decryption;
 pub mod encryption_params;
 
 use file::*;
-use input::*;
 use password::*;
 use encryption::*;
 use decryption::*;
@@ -25,7 +19,7 @@ fn main() {
     let key = derive_key_from_password(password, 16).unwrap();
 
     let encrypted = encrypt_aes_128(&result, &key, &generate_secure_iv(16).unwrap());
-    write_binary_file(file_path.clone() + "test_encrypted.txt", &encrypted.unwrap());
+    let _ = write_binary_file(file_path.clone() + "test_encrypted.txt", &encrypted.unwrap());
 
     let read_encrypted = read_binary_file(file_path.clone() + "test_encrypted.txt").unwrap();
     let decrypted = decrypt_aes_128(&read_encrypted, &key).unwrap();
