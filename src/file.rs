@@ -3,7 +3,7 @@ use std::io::{self, Read, Write};
 use std::path::Path;
 
 // This function reads binary data from a file and returns a `Result` containing the data.
-fn read_binary_file<P: AsRef<Path>>(path: P) -> io::Result<Vec<u8>> {
+pub fn read_binary_file<P: AsRef<Path>>(path: P) -> io::Result<Vec<u8>> {
     // Open the file for reading.
     let mut file = File::open(path)?;
 
@@ -18,7 +18,7 @@ fn read_binary_file<P: AsRef<Path>>(path: P) -> io::Result<Vec<u8>> {
 }
 
 // This function writes binary data to a new file.
-fn write_binary_file<P: AsRef<Path>>(path: P, data: &[u8]) -> io::Result<()> {
+pub fn write_binary_file<P: AsRef<Path>>(path: P, data: &[u8]) -> io::Result<()> {
     // Open the file for writing. It will create the file if it does not exist,
     // or truncate it if it does.
     let mut file = File::create(path)?;

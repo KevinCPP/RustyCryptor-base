@@ -1,8 +1,15 @@
 // import necessary OpenSSL library crates
 use openssl::symm::{Cipher, Crypter, Mode};
 use openssl::error::ErrorStack;
+use openssl::rand::rand_bytes;
 
 use crate::encryption_params::{IV_LENGTH, AES_128_KEY_LENGTH, AES_192_KEY_LENGTH, AES_256_KEY_LENGTH};
+
+pub fn generate_secure_iv(length: usize) -> Result<Vec<u8>, ErrorStack> {
+    let mut iv = vec![0u8; length];
+    rand_bytes(&mut iv)?;
+    Ok(iv)
+}
 
 /// Accepts a byte slice of data to be encrypted, a key of length 16 to perform the encryption
 /// with, and an initialization vector of length 16. Returns an Ok result containing the encrypted
