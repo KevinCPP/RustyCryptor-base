@@ -1,4 +1,4 @@
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::{self, Read, Write};
 use std::path::Path;
 
@@ -19,6 +19,11 @@ pub fn read_binary_file<P: AsRef<Path>>(path: P) -> io::Result<Vec<u8>> {
 
 // This function writes binary data to a new file.
 pub fn write_binary_file<P: AsRef<Path>>(path: P, data: &[u8]) -> io::Result<()> {
+    // Create the directory and its parent directories if they don't exist.
+    if let Some(parent) = path.as_ref().parent() {
+        fs::create_dir_all(parent)?;
+    }
+
     // Open the file for writing. It will create the file if it does not exist,
     // or truncate it if it does.
     let mut file = File::create(path)?;

@@ -24,9 +24,9 @@ fn generate_random_salt(length: usize) -> Result<Vec<u8>, ErrorStack> {
 /// for AES256.
 pub fn derive_key_from_password(password: &str, key_length: usize) -> Result<Vec<u8>, ErrorStack> {
     // define the salt size (16 is commonly used)
-    let salt_size = 16;
+    //let salt_size = 16;
     // Generate the salt, handling the result properly with error propagation
-    let salt = generate_random_salt(salt_size)?;
+    let salt = vec![0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e];
         
     // define the number of iterations to use (10000 is usually the minimum used in real world
     // applications, but usually more is used. For this purpose, I will use 10000)
