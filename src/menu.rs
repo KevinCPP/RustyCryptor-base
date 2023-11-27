@@ -1,6 +1,7 @@
 
 use crate::file::*;
 use crate::input::*;
+use crate::hashing::*;
 use crate::password::*;
 use crate::encryption::*;
 use crate::decryption::*;
@@ -134,10 +135,10 @@ pub fn decryption_menu() {
     // derive a key from the password
     let key = derive_key_from_password(&password, key_len).expect("Password to Key Derivation failed.");
     print!("key bytes: ");
-    print_bytes_as_hex(key.clone());
+    //print_bytes_as_hex(key.clone());
     // read in the file to be decrypted
     let binary_file = read_binary_file(input_file_path.clone()).expect("Failed to read the file.");
-    print_bytes_as_hex(binary_file.clone());
+    //print_bytes_as_hex(binary_file.clone());
     
     // perform the actual decryption operation
     let decrypted_bin = match input {
@@ -156,7 +157,26 @@ pub fn decryption_menu() {
 
 
 pub fn hashing_menu() {
-    return;
+    let menu_str = 
+    String::from("Hashing Menu:
+    \r1. Perform SHA256 hash");
+
+    let input = to_i64(prompt(Some(menu_str), None)).unwrap_or(INVALID_OPTION);
+
+    // get file to hash
+    let input_file_prompt = String::from("Enter the directory of the file you want to hash:");
+    let input_file_path = remove_special_chars(prompt(Some(input_file_prompt), None)).unwrap_or(String::new());
+
+    let binary_file = read_binary_file(input_file_path.clone()).expect("Failed to read the file.");
+    match sha256_hash(&binary_file) {
+        Ok(h) => {
+            let hex_string: String = h.iter().map(|byte| format!("{:02x}", byte)).collect();
+            println!("SHA-256: {}", hex_string);
+        },
+        Err(e) => println!("Error: {}", e),
+    }
+
+//    print!("{:?}", sha256_hash(&binary_file))
 }
 
 pub fn display_main_menu() {

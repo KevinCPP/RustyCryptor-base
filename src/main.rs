@@ -3,6 +3,7 @@
 pub mod file;
 pub mod menu;
 pub mod input;
+pub mod hashing;
 pub mod password;
 pub mod encryption;
 pub mod decryption;
